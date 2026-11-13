@@ -1,0 +1,109 @@
+﻿@model ECommerceCsvImport.Models.ImportViewModel
+@{
+    ViewData["Title"] = "Импорт товаров";
+}
+
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .card-custom {
+        background-color: #1e1e2f;
+        border: 1px solid #7b2cbf;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(123, 44, 191, 0.2);
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #00f2fe 0%, #4facfe 100%);
+        color: #000;
+        font-weight: bold;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        transition: 0.3s;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #4facfe 0%, #00f2fe 100%);
+            color: #000;
+            transform: scale(1.05);
+        }
+
+    .table-dark-custom {
+        background-color: #1e1e2f;
+        color: #e0e0e0;
+        border-color: #7b2cbf;
+    }
+
+        .table-dark-custom th {
+            background-color: #2a2a40;
+            color: #00f2fe;
+        }
+
+    h1, h2, h3 {
+        color: #00f2fe;
+    }
+
+    .error-text {
+        color: #ff4d4d;
+        font-weight: bold;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Импорт товаров из CSV</h1>
+
+    <div class="card-custom">
+        <form method="post" asp-controller="Products" asp-action="Import">
+            <div class="form-group mb-3">
+                <label for="filePath" class="form-label text-info">Путь к CSV-файлу:</label>
+                <input type="text" id="filePath" name="filePath" value="@Model.FilePath" class="form-control bg-dark text-white border-info" placeholder="/csv/sample_products.csv" />
+                <small class="text-muted">Введите: /csv/sample_products.csv</small>
+            </div>
+            <button type="submit" class="btn btn-gradient">Импортировать товары</button>
+        </form>
+    </div>
+
+    @if (Model.Result != null)
+    {
+        <div class="card-custom">
+            <h2>Результат импорта</h2>
+            <table class="table table-bordered table-dark-custom mt-3" style="width: 400px;">
+                <tbody>
+                    <tr><td>Всего строк</td><td>@Model.Result.TotalRows</td></tr>
+                    <tr><td>Успешно импортировано</td><td class="text-success">@Model.Result.ImportedCount</td></tr>
+                    <tr><td>Ошибки</td><td class="error-text">@Model.Result.ErrorCount</td></tr>
+                </tbody>
+            </table>
+
+            @if (Model.Result.Errors.Count > 0)
+            {
+                <h3 class="mt-4">Список ошибок</h3>
+                <table class="table table-bordered table-dark-custom mt-2">
+                    <thead>
+                        <tr><th style="width: 100px;">Строка</th><th>Описание ошибки</th></tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var error in Model.Result.Errors)
+                        {
+                            <tr>
+                                <td>@error.RowNumber</td>
+                                <td class="error-text">@error.Message</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-action="Index" class="text-info" style="text-decoration: none; font-size: 18px;">&larr; Перейти к списку товаров</a>
+    </div>
+</div>

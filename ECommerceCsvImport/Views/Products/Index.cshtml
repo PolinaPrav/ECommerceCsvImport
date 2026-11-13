@@ -1,0 +1,109 @@
+﻿@model ECommerceCsvImport.Models.ProductsIndexViewModel
+@{
+    ViewData["Title"] = "Список товаров";
+}
+
+<style>
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(90deg, #7b2cbf 0%, #c77dff 100%);
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .btn-gradient:hover {
+            background: linear-gradient(90deg, #c77dff 0%, #7b2cbf 100%);
+            transform: scale(1.05);
+        }
+
+    .card-custom {
+        background-color: #1e1e2f;
+        border: 1px solid #00f2fe;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 15px rgba(0, 242, 254, 0.1);
+    }
+
+    .table-dark-custom {
+        background-color: #1e1e2f;
+        color: #e0e0e0;
+    }
+
+        .table-dark-custom th {
+            background-color: #2a2a40;
+            color: #c77dff;
+            border-color: #7b2cbf;
+        }
+
+        .table-dark-custom td {
+            border-color: #333;
+        }
+
+        .table-dark-custom tbody tr:hover {
+            background-color: #2a2a40;
+            color: #00f2fe;
+        }
+
+    h1, h2 {
+        color: #00f2fe;
+    }
+</style>
+
+<div class="container mt-4">
+    <h1 class="mb-4">Товары в магазине</h1>
+
+    <a asp-action="Import" class="btn btn-gradient mb-4">Импортировать товары из CSV</a>
+
+    <div class="card-custom">
+        <h4>Всего товаров: <span class="text-info">@Model.TotalCount</span></h4>
+        <h4>Общая стоимость: <span class="text-warning">@Model.TotalValue.ToString("N0") RUB</span></h4>
+    </div>
+
+    @if (Model.Products.Count == 0)
+    {
+        <div class="alert alert-dark border-info mt-4" role="alert">
+            Товары еще не импортированы. Нажмите кнопку выше.
+        </div>
+    }
+    else
+    {
+        <table class="table table-bordered table-dark-custom mt-4">
+            <thead>
+                <tr>
+                    <th>Артикул</th>
+                    <th>Название</th>
+                    <th>Цена</th>
+                    <th>Категория</th>
+                    <th>Остаток</th>
+                    <th>Бренд</th>
+                    <th>Гарантия</th>
+                    <th>Модель</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in Model.Products)
+                {
+                    <tr>
+                        <td>@product.Sku</td>
+                        <td>@product.Name</td>
+                        <td>@product.Price.ToString("N0") @product.Currency</td>
+                        <td>@product.CategoryName</td>
+                        <td>@product.StockQuantity</td>
+                        <td>@product.Brand</td>
+                        <td>@product.WarrantyMonths мес.</td>
+                        <td>@product.ModelNumber</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using ECommerceCsvImport.Models;
 using ECommerceCsvImport.Services;
 using System.IO;
@@ -7,6 +7,8 @@ namespace ECommerceCsvImport.Controllers;
 
 public class ProductsController : Controller
 {
+    private const string EmptyPathMessage = "Укажите путь к CSV-файлу";
+
     private readonly IProductRepository _repository;
     private readonly IProductImportService _importService;
     private readonly IWebHostEnvironment _environment;
@@ -16,11 +18,12 @@ public class ProductsController : Controller
         IProductImportService importService,
         IWebHostEnvironment environment)
     {
-        _repository = repository;
-        _importService = importService;
-        _environment = environment;
+        _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        _importService = importService ?? throw new ArgumentNullException(nameof(importService));
+        _environment = environment ?? throw new ArgumentNullException(nameof(environment));
     }
 
+    [HttpGet]
     public IActionResult Index()
     {
         var viewModel = new ProductsIndexViewModel
@@ -38,38 +41,32 @@ public class ProductsController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public IActionResult Import(string filePath)
+    public IActionResult Import(string? filePath)
     {
-        var resolvedPath = ResolveFilePath(filePath);
-
-        if (string.IsNullOrWhiteSpace(resolvedPath))
+        if (string.IsNullOrWhiteSpace(filePath))
         {
-            return View("Import", new ImportViewModel { FilePath = filePath });
+            var emptyPathResult = new ImportResult();
+            emptyPathResult.Errors.Add(new ImportError { RowNumber = 0, Message = EmptyPathMessage });
+
+            return View("Import", new ImportViewModel { Result = emptyPathResult });
         }
 
-        var result = _importService.ImportFromCsv(resolvedPath);
+        var result = _importService.ImportFromCsv(ResolveFilePath(filePath));
 
-        var viewModel = new ImportViewModel
+        return View("Import", new ImportViewModel
         {
             FilePath = filePath,
             Result = result
-        };
-
-        return View(viewModel);
+        });
     }
 
     private string ResolveFilePath(string filePath)
     {
-        if (string.IsNullOrWhiteSpace(filePath)) return string.Empty;
+        var trimmed = filePath.Trim();
 
-        if (System.IO.File.Exists(filePath)) return filePath; 
+        if (System.IO.File.Exists(trimmed))
+            return trimmed;
 
-        if (filePath.StartsWith("/"))
-        {
-            var webRootPath = Path.Combine(_environment.WebRootPath, filePath.TrimStart('/'));
-            if (System.IO.File.Exists(webRootPath)) return webRootPath; 
-        }
-
-        return string.Empty;
+        return Path.Combine(_environment.WebRootPath, trimmed.TrimStart('/', '\\'));
     }
 }
